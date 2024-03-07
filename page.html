@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visual Math Editor</title>
+    <!-- Подключение библиотеки KaTeX -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/contrib/auto-render.min.js"></script>
+    <style>
+        /* Стили для кнопок редактора формул */
+        .formula-buttons {
+            margin-bottom: 10px;
+        }
+        .formula-buttons button {
+            margin-right: 5px;
+            cursor: pointer;
+        }
+        /* Стили для поля, где будет отображаться результат */
+        #math-editor {
+            width: 100%;
+            border: 1px solid #ccc;
+            padding: 10px;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="formula-buttons">
+            <!-- Кнопки для вставки элементов формул -->
+            <button onclick="insertFormula('^')">^</button>
+            <button onclick="insertFormula('_')">_</button>
+            <button onclick="insertFormula('\\sqrt{}')">√</button>
+            <button onclick="insertFormula('\\frac{}{}')">/</button>
+            <button onclick="insertFormula('\\int')">∫</button>
+        </div>
+        <!-- HTML-элемент, где будет отображаться результат -->
+        <div id="math-editor" contenteditable="true"></div>
+    </div>
+
+    <script>
+        // Функция для вставки элементов формул
+        function insertFormula(formula) {
+            var mathEditor = document.getElementById('math-editor');
+            mathEditor.innerHTML += '<span>' + formula + '</span>';
+            renderMathInElement(mathEditor); // Перерисовка формулы с помощью KaTeX
+        }
+    </script>
+</body>
+</html>
