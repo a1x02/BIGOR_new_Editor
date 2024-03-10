@@ -22,9 +22,14 @@ body {
     border: none; /* Убираем рамку */
     /* padding: 10px; */
     font-size: 20px; /* Устанавливаем размер шрифта по умолчанию */
-    resize: vertical;
+    resize: none;
     box-sizing: border-box;
     text-align: justify; /* Выравнивание текста по ширине */
+}
+
+.text__editor::selection {
+    background-color: gray;
+    color: white;
 }
 
 .text__header {
@@ -43,3 +48,35 @@ body {
 textarea:focus {
     outline: none;
 }
+
+.popup__add-tools {
+    width: 40px;
+    height: 120px;
+    display: none;
+    background-color: rgba(0, 0, 0, 0.8);
+    border-radius: 5px;
+    position: fixed;
+}
+
+.popup__tool-icon {
+    background-image: url('img/formula.svg');
+    background-repeat: none;
+    background-position: center;
+    background-size: contain;
+    width: 20px;
+    height: 20px;
+    margin: 5px auto 0;
+}
+
+.popup__tool-icon:hover {
+   opacity: 0.7;
+   cursor: pointer;
+}
+
+/* main {
+    display: none;
+}
+
+.detached {
+    display: none;
+} */

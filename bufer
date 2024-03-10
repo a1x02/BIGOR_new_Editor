@@ -1,3 +1,209 @@
+<main id="main" data-param-fontsize="32" data-param-keyboardType="scientific" data-param-showKeyboardOnFocus="false" data-param-editorForegroundColor="red" data-param-editorBackgroundColor="cyan" data-param-textmode="true"></main>
+		<script>
+		var main = document.getElementById("main");
+		// eg editorLite.html?keyboardType=scientific&fgColor=red&bgColor=cyan&fontSize=28&showKeyboardOnFocus=false
+		var urlParams = new URLSearchParams(window.location.search);7
+		var codebase;
+		var keyboardType = "notes";
+		var language = "en";
+		var fgColor = "black";
+		var bgColor = "white";
+		var textmode = urlParams.has('textmode');
+		var showKeyboardOnFocus = true;
+		var fontSize = 32;
+		if(urlParams.has('fgColor')) {
+			fgColor = urlParams.get('fgColor') + "";
+		}
+		if(urlParams.has('bgColor')) {
+			bgColor = urlParams.get('bgColor') + "";
+		}
+		if(urlParams.has('keyboardType')) {
+			keyboardType = urlParams.get('keyboardType') + "";
+		}
+		if(urlParams.has('language')) {
+			language = urlParams.get('language') + "";
+		}
+		if(urlParams.has('showKeyboardOnFocus')) {
+			showKeyboardOnFocus = !!urlParams.get('showKeyboardOnFocus');
+		}
+		if(urlParams.has('fontSize')) {
+			fontSize = urlParams.get('fontSize') * 1;
+		}
+		main.setAttribute("data-param-keyboardType", keyboardType);
+		main.setAttribute("data-param-fontsize", fontSize);
+		main.setAttribute("data-param-showKeyboardOnFocus", showKeyboardOnFocus);
+		main.setAttribute("data-param-editorForegroundColor", fgColor);
+		main.setAttribute("data-param-editorBackgroundColor", bgColor);
+		main.setAttribute("data-param-textmode", textmode);
+		var eventglob
+		var listener = function(state) {
+			console.log("Processing event: \"" + state[0] + "\"", state);
+			if(state[0] == "editorKeyTyped") {
+				//console.log("editorKeyTyped: ", state.latex, ", ", state.content, ", ", state.eval);
+				var key = state.key;
+				if(key == "\n") {
+					key = "<Enter>";
+				} else if(key == " ") {
+					key = "<Space>";
+				} else if(!key) {
+					key = "<Unknown>";
+				}
+				console.log("Key pressed = " + key);
+				var content = editorAPI.getEditorState().content;
+				var solver = editorAPI.getEditorState().solver;
+				console.log(editorAPI.getEditorState());
+				setLaTeX(state.latex);
+				var stateStr = "altText: " + state.latex + "\ncontent: " + content + "\nsolver: " + solver;
+				document.getElementById("textarea1").value = stateStr;
+				document.getElementById("flat").value = content;
+				document.getElementById("latex").value = state.latex;
+			} else if(state[0] == "editorStop") {
+				console.log("Enter pressed or focus lost!");
+			} else if(state[0] == "closeKeyboard") {
+				console.log("Keyboard closed");
+			} else if(state[0] == "openKeyboard") {
+				console.log("Keyboard opened");
+			} else {
+				console.log("unhandled event", state[0]);
+			}
+		}
+
+		function printState() {
+			var state = editorAPI.getEditorState();
+			console.log(state.latex, ", ", state.content, ", ", state.eval);
+			console.log(state);
+		}
+		</script>
+		<script>
+		var editorAPI;
+		var formula;
+		var parameters = {
+			"id": "ggbApplet",
+			"textmode": textmode,
+			"useBrowserForJS": false,
+			"app": false,
+			"appName": "evaluator",
+			"scaleContainerClass": "wrap",
+			"fontSize": 32,
+			// use names like "blue", also #RRGGBB format eg "#1fe6aa"
+			// background can also be "transparent"
+			"editorBackgroundColor": bgColor,
+			"editorForegroundColor": fgColor,
+			// specify the rounding for a calculation (for state.eval)
+			"rounding": 6,
+			"language": language,
+			"keyboardType": keyboardType,
+			//Possible options "keyboardType": "scientific",
+			//or "keyboardType": "normal",
+			//or "keyboardType": "notes",
+			// useful if you have several editors on a page
+			"preventFocus": false,
+			// called after the editor is fully loaded
+			"appletOnLoad": function(api) {
+				editorAPI = api;
+				api.registerClientListener(listener);
+				var text = "Editor is in text mode";
+				// initial state
+				var state = [];
+				state[0] = "editorKeyTyped";
+				state.altText = textmode ? text : "altText: start square root start fraction x over 2 plus x end fraction  end square root";
+				state.content = textmode ? text : "sqrt(x/(2+x))";
+				state.latex = textmode ? "Editor\\nbsp is\\nbsp in\\nbsp text\\nbsp mode" : "\\sqrt{{\\frac{x}{2+x}}}";;
+				state.eval = textmode ? text : "sqrt(x / (2 + x))";
+				editorAPI.setEditorState({
+					"content": state.content
+				});
+				// update other text fields
+				listener(state);
+			}
+		};
+
+		function keyPressed() {
+			var content = document.getElementById("flat").value;
+			console.log(content);
+			editorAPI.setEditorState({
+				"content": content
+			});
+		}
+
+		function keyPressedLaTeX() {
+			var content = document.getElementById("latex").value;
+			console.log(content);
+			try {
+				editorAPI.evalLaTeX(content);
+			} catch (e) {
+				console.error(e);
+			}
+		}
+
+		function setLaTeX(latex) {
+			var div = document.querySelector("#formula");
+			div.innerHTML = "<br>";
+			formula.create({
+				"latex": latex,
+				"size": fontSize,
+				"type": 1
+			}).inject(document.querySelector("#formula"));
+		}
+		</script>
+		<script type="module">
+		await new Promise((resolve) => {
+			addEventListener('load', () => {
+				resolve();
+			});
+		});
+		const { editor, formula } = await import(
+			"https://apps-builds.s3-eu-central-1.amazonaws.com/geogebra/branches/apps-5091-editor/latest/editor/editor.nocache.mjs"
+		);
+    editor.create(document.querySelector("#main")).getAPI().then(api => {
+		window.editorAPI = api
+		window.formula = formula;
+            api.registerClientListener(listener);
+			
+			var text = "Editor is in text mode";
+			// initial state
+			var state = [];
+			state[0] = "editorKeyTyped";
+			//state.altText = textmode?text:"altText: start square root start fraction x over 2 plus x end fraction  end square root";
+			state.content = textmode ? text : "sqrt(x/(2+x))";
+			state.latex = textmode ? "Editor\\nbsp is\\nbsp in\\nbsp text\\nbsp mode" : "\\sqrt{{\\frac{x}{2+x}}}";
+			setLaTeX("\\sqrt{{\\frac{x}{2+x}}}");
+			//state.eval = textmode ? text : "sqrt(x / (2 + x))";
+			editorAPI.setEditorState({
+				"content": state.content
+			});
+			// update other text fields
+			listener(state);
+			
+        });
+
+
+	
+	
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,7 +222,7 @@
         <textarea class="text__editor" id="textEditor" placeholder="Начните писать"></textarea>
         <main id="main" data-param-fontsize="32" data-param-keyboardType="scientific" data-param-showKeyboardOnFocus="false" data-param-editorForegroundColor="red" data-param-editorBackgroundColor="cyan" data-param-textmode="true"></main>
         <div class="popup__add-tools">
-            <div class="popup__tool-icon"></div>
+            <div class="popup__tool-icon" onclick="showTools()"></div>
         </div>
         <div class="tools-container" style="display: none;">
             <div id="formula"></div>
